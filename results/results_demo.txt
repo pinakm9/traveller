@@ -1,0 +1,2 @@
+crossover    avg best length    avg time(s)    avg no of generations    elitism
+________________________________________________________________________________

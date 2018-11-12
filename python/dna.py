@@ -4,7 +4,7 @@ import copy
 from random import sample 
 
 def crossover_wrapper(crossover):
-	
+
 	def symmetric_crossover(*args, **kwargs):
 		args = list(args)
 		cross_pts, sep = None, None
@@ -23,6 +23,8 @@ def crossover_wrapper(crossover):
 		child1 = crossover(chrom1, chrom2, sep, cross_pts)
 		child2 = crossover(chrom2, chrom1, sep, cross_pts)
 		return [child1, child2]
+
+	symmetric_crossover.__name__ = crossover.__name__
 
 	return symmetric_crossover
 

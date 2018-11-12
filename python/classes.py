@@ -1,5 +1,6 @@
 import numpy as np
 from time import time
+import random
 
 # Timing wrapper
 def timer(func):
@@ -55,7 +56,7 @@ class Walk(object):
 		for i, id_ in enumerate(ids):
 			ma, mi = max(id_, ids[i-1]), min(id_, ids[i-1])
 			self.length += map_.matrix[ma][mi]
-		self.reproduction_score = 0
+		#self.reproduction_score = 0
 		self.is_hamiltonian = len(ids) == map_.num_cities
 
 	def __lt__(self, other):
@@ -77,28 +78,20 @@ class Traveller(object):
 		self.max_routes = num_routes
 		for n in range(num_routes):
 			self.routes.append(self.walk())
-		self.routes = sorted(self.routes, key = lambda x: x.length)
+		self.routes.sort()
 		self.map.best_path_length = self.routes[0].length
 
 	def generate_next_routes(self, mating_pool_size, crossover, mutation, mutation_prob, elitism = True):
 		new_routes = []
 		# Select pairs for mating
-		for w in self.routes:
-			w.reproduction_score = np.random.rand()/w.length
-		pool = np.array(sorted(self.routes, key = lambda x: x.reproduction_score, reverse = True)[:mating_pool_size]).reshape(-1, 2)
+		if elitism is True:
+			pool = np.array(self.routes[:mating_pool_size]).reshape(-1, 2)
+		else:
+			pool = np.array(random.sample(self.routes, mating_pool_size)).reshape(-1, 2)
 		for pair in pool:
 			route1, route2 = crossover(pair[0].route, pair[1].route, self.sep)
-			#print(route1, route2)
 			route1, route2 = mutation(route1, self.sep, mutation_prob), mutation(route1, self.sep, mutation_prob)
 			new_routes += [Walk(route1, self.map, self.sep), Walk(route2, self.map, self.sep)]
-		if elitism is False:
-			new_routes = np.array(new_routes).reshape(-1,2)
-			for i, pair in enumerate(pool):
-				w1, w2 = pair
-				i1, i2 = self.routes.index(w1), self.routes.index(w2)
-				self.routes[i1], self.routes[i2] = new_routes[i]
-			self.routes.sort()
-		else:
 			self.routes += new_routes
 			self.routes.sort()
 			self.routes = self.routes[:self.max_routes]
@@ -125,10 +118,12 @@ class Traveller(object):
 
 	@timer
 	def test(self, num_routes, mating_pool_size, crossover, mutation, mutation_prob, elitism = True, stagnation_threshold = 100,\
-	           improvement_threshold = 1e-6, num_trials = 10):
+	           improvement_threshold = 1e-6, num_trials = 10, log = False, file_path = ''):
+		print('{0}\nSearching with crossover = {1} and {2} elitism\n{0}'.format('#'*60, crossover.__name__, 'with' if elitism else 'without'))
 		avg = lambda x: sum(x)/float(len(x))
 		durs, lens, itrs, truth = [0]*num_trials, [0]*num_trials, [0]*num_trials, [0]*num_trials
 		for i in range(num_trials):
+			print('Trial #{}'.format(i+1))
 			res, dur = self.search(num_routes, mating_pool_size, crossover, mutation, mutation_prob, elitism, stagnation_threshold,\
 	           improvement_threshold)
 			durs[i] = dur
@@ -136,6 +131,10 @@ class Traveller(object):
 			itrs[i] = res[2]
 			truth[i] = res[0].is_hamiltonian
 		print('Average best length = {:.4f} units'.format(avg(lens)))
-		print('Average time taken = :{:.4f} seconds'.format(avg(durs)))
+		print('Average time taken = {:.4f} seconds'.format(avg(durs)))
 		print('Average number of generations = {:.4f}'.format(avg(itrs)))
-		print('All solutions are {}'.format('incorrect' if avg(truth) < 1 else 'correct'))
+		print('All solutions are {}'.format('not correct' if avg(truth) < 1 else 'correct'))
+		if log is True:
+			with open(file_path, 'a+') as file:
+				file.write('{}{}{:.2f}{}{:.2f}{}{:.2f}{}{}\n'\
+					.format(crossover.__name__.ljust(16), ' '*2, avg(lens), ' '*10, avg(durs), ' '*12, avg(itrs), ' '*16, 'Yes' if elitism else 'No'))

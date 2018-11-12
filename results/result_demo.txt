@@ -1,0 +1,3 @@
+crossover    avg best length    avg time(s)    avg no of generations    elitism
+________________________________________________________________________________
+modified          8875.91          25.06            257.00                Yes

@@ -1,0 +1,14 @@
+crossover    avg best length    avg time(s)    avg no of generations    elitism
+________________________________________________________________________________
+modified          9017.63          28.80            284.20                Yes
+modified          9012.48          32.28            309.70                No
+cycle             8915.81          27.83            286.60                Yes
+cycle             9056.43          33.39            353.90                No
+order             8935.75          29.50            287.00                Yes
+order             8954.59          34.83            345.80                No
+order_based       9205.35          86.32            1084.20               Yes
+order_based       9058.09          88.02            1122.20               No
+position_based    9041.43          66.84            1034.40               Yes
+position_based    9137.48          71.73            1128.90               No
+partially_mapped  8946.93          29.44            285.20                Yes
+partially_mapped  8893.34          36.99            354.00                No
