@@ -28,6 +28,16 @@ def crossover_wrapper(crossover):
 
 
 @crossover_wrapper
+def modified(chrom1, chrom2, sep = '_', cross_pts = [0, 0]):
+	low, high = cross_pts
+	cut, j = chrom1[:low + 1], low + 1
+	for ch in chrom2:
+		if ch not in cut:
+			chrom1[j] = ch
+			j += 1
+	return sep.join(chrom1)
+
+@crossover_wrapper
 def partially_mapped(chrom1, chrom2, sep = '_', cross_pts = [0, 0]):
 	low, high = cross_pts
 	child = copy.deepcopy(chrom2)
@@ -45,6 +55,30 @@ def partially_mapped(chrom1, chrom2, sep = '_', cross_pts = [0, 0]):
 				child[j] = c
 				break
 	return sep.join(child)
+
+@crossover_wrapper
+def cycle(chrom1, chrom2, sep = '_', cross_pts = [0, 0]):
+	low, high = cross_pts
+	perm = {}
+	cyc, i, part1 = [low], low, [chrom1[low]]
+	while chrom2[i] != chrom1[low]:
+		i = chrom1.index(chrom2[i])
+		cyc.append(i)
+		part1.append(chrom1[i])
+	idx = [0]*(len(chrom1)-len(cyc))
+	j = 0
+	for i in range(len(chrom1)):
+		if i not in cyc:
+			idx[j] = i
+			j += 1
+	idx.sort()
+	#print(len(idx), len(chrom2)-len(part1))
+	j = 0
+	for ch in chrom2:
+		if ch not in part1:
+			chrom1[idx[j]] = ch
+			j += 1 
+	return sep.join(chrom1)
 
 @crossover_wrapper
 def order(chrom1, chrom2, sep = '_', cross_pts = [0, 0]):

@@ -7,8 +7,9 @@ def timer(func):
 		start = time()
 		val = func(*args,**kwargs)
 		end = time()
-		print('Time taken by function {} is {} seconds'.format(func.__name__, end-start))
-		return val
+		duration = end-start
+		print('Time taken by function {} is {} seconds'.format(func.__name__, duration))
+		return val, duration
 	return new_func
 
 class City(object):
@@ -118,6 +119,23 @@ class Traveller(object):
 				stagnation_period = 0
 			length = self.map.best_path_length
 			itr += 1
-			print('Length of best Hamiltonian cycle at iteration {} is {:.5f}'.format(itr, length), end = "\r")
+			print('Length of best Hamiltonian cycle at generation {} is {:.5f}'.format(itr, length), end = "\r")
 		print('\nPopulation has reached stagnation.')
-		return self.routes[0]
+		return self.routes[0], length, itr
+
+	@timer
+	def test(self, num_routes, mating_pool_size, crossover, mutation, mutation_prob, elitism = True, stagnation_threshold = 100,\
+	           improvement_threshold = 1e-6, num_trials = 10):
+		avg = lambda x: sum(x)/float(len(x))
+		durs, lens, itrs, truth = [0]*num_trials, [0]*num_trials, [0]*num_trials, [0]*num_trials
+		for i in range(num_trials):
+			res, dur = self.search(num_routes, mating_pool_size, crossover, mutation, mutation_prob, elitism, stagnation_threshold,\
+	           improvement_threshold)
+			durs[i] = dur
+			lens[i] = res[1]
+			itrs[i] = res[2]
+			truth[i] = res[0].is_hamiltonian
+		print('Average best length = {:.4f} units'.format(avg(lens)))
+		print('Average time taken = :{:.4f} seconds'.format(avg(durs)))
+		print('Average number of generations = {:.4f}'.format(avg(itrs)))
+		print('All solutions are {}'.format('incorrect' if avg(truth) < 1 else 'correct'))
